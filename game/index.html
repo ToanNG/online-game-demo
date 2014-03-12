@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Impact Game</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+	<style type="text/css">
+		html, body {
+			background-color: #000;
+			color: #fff;
+			font-family: helvetica, arial, sans-serif;
+			margin: 0;
+			padding: 0;
+			font-size: 12pt;
+		}
+
+		#canvas {
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			margin: auto;
+			border: 1px solid #555;
+		}
+	</style>
+
+	<script type="text/javascript" src="lib/impact/impact.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="lib/game/main.js"></script>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+
+	<script type="text/javascript">
+		var inputName = window.prompt("Please enter your name"),
+			gameScreen = {};
+
+		var socket = io.connect(window.location.origin);
+
+		socket.on("connect", function() {
+			socket.on("add player", function(playerList, newPlayerName) {
+				var player = ig.game.getEntitiesByType(EntityPlayer)[0];
+
+				// Spawn include previous players
+				for (var i = 0; i < playerList.length; i++) {
+					if (player.name != playerList[i]) {
+						ig.game.spawnEntity(EntityOtherPlayer, 32, 32, {name: playerList[i]});
+					}
+				}
+			});
+
+			socket.on("update other player", function(positionX, positionY, currentAnimation, otherPlayerName) {
+				if (!ig.game) return;
+
+				var otherPlayer = ig.game.getEntitiesByType(EntityOtherPlayer);
+
+				if (otherPlayer) {
+					for (var i in otherPlayer) {
+						if (otherPlayerName == otherPlayer[i].name) {
+							otherPlayer[i].pos.x = positionX;
+							otherPlayer[i].pos.y = positionY;
+
+							otherPlayer[i].animation = currentAnimation;
+						}
+					}
+				}
+			});
+
+			socket.on("remove player", function(playerList) {
+				var otherPlayer = ig.game.getEntitiesByType(EntityOtherPlayer);
+				
+				if (otherPlayer) {
+					for (var i in otherPlayer) {
+						otherPlayer[i].kill();
+					}
+				}
+
+				for (var i in playerList) {
+					if (inputName != playerList[i]) {
+						ig.game.spawnEntity(EntityOtherPlayer, 32, 32, {name: playerList[i]});
+					}
+				}
+			});
+		});
+	</script>
+</body>
+</html>
