@@ -38,9 +38,10 @@ MyGame = ig.Game.extend({
 
 		var player = this.getEntitiesByType( EntityPlayer )[0];
 		this.font.draw( 'Name: ' + player.name + ' Health: ' + player.health, 0, 0 );
+		this.font.draw( '[DEBUG] Index: ' + player.index + ' Target: (' + player.targetX + ', ' + player.targetY + ') Direction: ' + player.direction, 0, ig.system.height - 7 );
 	}
 });
 
-ig.main( '#canvas' , MyGame, 60, 640, 480, 1);
+ig.main( '#canvas' , MyGame, 30, 640, 480, 1);
 
 });

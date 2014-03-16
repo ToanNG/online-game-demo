@@ -5,13 +5,13 @@ var server = require('http').createServer()
 
 server.on('request', function(req, res){
   var pathname = url.parse(req.url).pathname,
-      tmp  = pathname.lastIndexOf("."),
-      extension  = pathname.substring((tmp + 1));
+    tmp  = pathname.lastIndexOf("."),
+    extension  = pathname.substring((tmp + 1));
 
   fs.readFile(__dirname + pathname, function(err, data){
     if (err) {
       res.writeHead(500);
-      return res.end('Error loading index.html');
+      return res.end('Error loading ' + pathname);
     }
 
     if (extension === 'html') res.writeHeader(200, {'Content-Type': 'text/html'});
@@ -29,20 +29,24 @@ server.on('request', function(req, res){
 var playerList = [];
 
 io.on('connection', function(socket){
-  socket.on('initialize player', function(newPlayerName){
+  socket.on('initialize player', function(newPlayerName, newPlayerPos){
     socket.clientName = newPlayerName;
-    playerList.push(newPlayerName);
-    io.sockets.emit('add player', playerList, newPlayerName);
+    playerList.push({
+      name: newPlayerName,
+      lastPos: newPlayerPos
+    });
+    socket.emit('set index', playerList.length - 1);
+    io.sockets.emit('add player', playerList);
   });
 
-  socket.on('update player', function(positionX, positionY, currentAnimation, playerName){
-    socket.broadcast.emit('update other player', positionX, positionY, currentAnimation, playerName);
+  socket.on('update player', function(playerIndex, playerName, direction, target){
+    playerList[playerIndex].lastPos = target;
+    socket.broadcast.emit('update other player', playerName, direction, target);
   });
 
   socket.on('disconnect', function(){
-    delete playerList[socket.clientName];
-    for (var i in playerList) {
-      if (playerList[i] == socket.clientName) {
+    for (var i = 0; i < playerList.length; i++) {
+      if (playerList[i].name == socket.clientName) {
         playerList.splice(i, 1);
       }
     }

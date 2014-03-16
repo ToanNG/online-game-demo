@@ -26,8 +26,8 @@
 		}
 	</style>
 
+	<script src="http://localhost:3000/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="lib/impact/impact.js"></script>
-	<script src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="lib/game/main.js"></script>
 </head>
 <body>
@@ -40,18 +40,22 @@
 		var socket = io.connect(window.location.origin);
 
 		socket.on("connect", function() {
-			socket.on("add player", function(playerList, newPlayerName) {
+			socket.on("set index", function(newPlayerIndex) {
+				var player = ig.game.getEntitiesByType(EntityPlayer)[0];
+				player.index = newPlayerIndex;
+			});
+
+			socket.on("add player", function(playerList) {
 				var player = ig.game.getEntitiesByType(EntityPlayer)[0];
 
-				// Spawn include previous players
 				for (var i = 0; i < playerList.length; i++) {
-					if (player.name != playerList[i]) {
-						ig.game.spawnEntity(EntityOtherPlayer, 32, 32, {name: playerList[i]});
+					if (player.name != playerList[i].name) {
+						ig.game.spawnEntity(EntityOtherPlayer, playerList[i].lastPos.x, playerList[i].lastPos.y, {name: playerList[i].name});
 					}
 				}
 			});
 
-			socket.on("update other player", function(positionX, positionY, currentAnimation, otherPlayerName) {
+			socket.on("update other player", function(otherPlayerName, direction, target) {
 				if (!ig.game) return;
 
 				var otherPlayer = ig.game.getEntitiesByType(EntityOtherPlayer);
@@ -59,27 +63,29 @@
 				if (otherPlayer) {
 					for (var i in otherPlayer) {
 						if (otherPlayerName == otherPlayer[i].name) {
-							otherPlayer[i].pos.x = positionX;
-							otherPlayer[i].pos.y = positionY;
-
-							otherPlayer[i].animation = currentAnimation;
+							otherPlayer[i].targetX = target.x;
+							otherPlayer[i].targetY = target.y;
+							otherPlayer[i].direction = direction;
 						}
 					}
 				}
 			});
 
 			socket.on("remove player", function(playerList) {
-				var otherPlayer = ig.game.getEntitiesByType(EntityOtherPlayer);
+				var otherPlayer = ig.game.getEntitiesByType(EntityOtherPlayer),
+					player = ig.game.getEntitiesByType(EntityPlayer)[0];
 				
 				if (otherPlayer) {
-					for (var i in otherPlayer) {
+					for (var i = 0; i < otherPlayer.length; i++) {
 						otherPlayer[i].kill();
 					}
 				}
 
-				for (var i in playerList) {
-					if (inputName != playerList[i]) {
-						ig.game.spawnEntity(EntityOtherPlayer, 32, 32, {name: playerList[i]});
+				for (var i = 0; i < playerList.length; i++) {
+					if (inputName != playerList[i].name) {
+						ig.game.spawnEntity(EntityOtherPlayer, playerList[i].lastPos.x, playerList[i].lastPos.y, {name: playerList[i].name});
+					} else {
+						player.index = i;
 					}
 				}
 			});
