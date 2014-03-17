@@ -26,7 +26,7 @@
 		}
 	</style>
 
-	<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="lib/impact/impact.js"></script>
 	<script type="text/javascript" src="lib/game/main.js"></script>
 </head>
@@ -40,12 +40,12 @@
 		var socket = io.connect(window.location.origin);
 
 		socket.on("connect", function() {
-			socket.on("set index", function(newPlayerIndex) {
+			socket.on("setIndex", function(newPlayerIndex) {
 				var player = ig.game.getEntitiesByType(EntityPlayer)[0];
 				player.index = newPlayerIndex;
 			});
 
-			socket.on("add player", function(playerList) {
+			socket.on("addPlayer", function(playerList) {
 				var player = ig.game.getEntitiesByType(EntityPlayer)[0];
 
 				for (var i = 0; i < playerList.length; i++) {
@@ -55,7 +55,7 @@
 				}
 			});
 
-			socket.on("update other player", function(otherPlayerName, direction, target) {
+			socket.on("updateOtherPlayer", function(otherPlayerName, direction, target) {
 				if (!ig.game) return;
 
 				var otherPlayer = ig.game.getEntitiesByType(EntityOtherPlayer);
@@ -71,7 +71,7 @@
 				}
 			});
 
-			socket.on("remove player", function(playerList) {
+			socket.on("removePlayer", function(playerList) {
 				var otherPlayer = ig.game.getEntitiesByType(EntityOtherPlayer),
 					player = ig.game.getEntitiesByType(EntityPlayer)[0];
 				

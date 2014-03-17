@@ -29,19 +29,19 @@ server.on('request', function(req, res){
 var playerList = [];
 
 io.on('connection', function(socket){
-  socket.on('initialize player', function(newPlayerName, newPlayerPos){
+  socket.on('initializePlayer', function(newPlayerName, newPlayerPos){
     socket.clientName = newPlayerName;
     playerList.push({
       name: newPlayerName,
       lastPos: newPlayerPos
     });
-    socket.emit('set index', playerList.length - 1);
-    io.sockets.emit('add player', playerList);
+    socket.emit('setIndex', playerList.length - 1);
+    io.sockets.emit('addPlayer', playerList);
   });
 
-  socket.on('update player', function(playerIndex, playerName, direction, target){
+  socket.on('updatePlayer', function(playerIndex, playerName, direction, target){
     playerList[playerIndex].lastPos = target;
-    socket.broadcast.emit('update other player', playerName, direction, target);
+    socket.broadcast.emit('updateOtherPlayer', playerName, direction, target);
   });
 
   socket.on('disconnect', function(){
@@ -50,7 +50,7 @@ io.on('connection', function(socket){
         playerList.splice(i, 1);
       }
     }
-    socket.broadcast.emit('remove player', playerList);
+    socket.broadcast.emit('removePlayer', playerList);
   });
 });
 

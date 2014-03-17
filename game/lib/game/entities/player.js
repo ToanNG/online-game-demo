@@ -40,7 +40,7 @@ EntityPlayer = ig.Entity.extend({
 
     this.correctPosition();
 
-    socket.emit( 'initialize player', this.name, this.pos );
+    socket.emit( 'initializePlayer', this.name, this.pos );
   },
 
   /**
@@ -62,7 +62,7 @@ EntityPlayer = ig.Entity.extend({
         this.targetY = this.pos.y.round() - 32;
         this.targetX = this.pos.x.round();
         this.direction = 'up';
-        socket.emit( 'update player', this.index, this.name, this.direction, {x: this.targetX, y: this.targetY} );
+        socket.emit( 'updatePlayer', this.index, this.name, this.direction, {x: this.targetX, y: this.targetY} );
       }
       else if( ig.input.state('down') ) {
         this.vel.y = +this.speed;
@@ -71,7 +71,7 @@ EntityPlayer = ig.Entity.extend({
         this.targetY = this.pos.y.round() + 32;
         this.targetX = this.pos.x.round();
         this.direction = 'down';
-        socket.emit( 'update player', this.index, this.name, this.direction, {x: this.targetX, y: this.targetY} );
+        socket.emit( 'updatePlayer', this.index, this.name, this.direction, {x: this.targetX, y: this.targetY} );
       }
       else if( ig.input.state('left') ) {
         this.vel.x = -this.speed;
@@ -80,7 +80,7 @@ EntityPlayer = ig.Entity.extend({
         this.targetX = this.pos.x.round() - 32;
         this.targetY = this.pos.y.round();
         this.direction = 'left';
-        socket.emit( 'update player', this.index, this.name, this.direction, {x: this.targetX, y: this.targetY} );
+        socket.emit( 'updatePlayer', this.index, this.name, this.direction, {x: this.targetX, y: this.targetY} );
       }
       else if( ig.input.state('right') ) {
         this.vel.x = +this.speed;
@@ -89,7 +89,7 @@ EntityPlayer = ig.Entity.extend({
         this.targetX = this.pos.x.round() + 32;
         this.targetY = this.pos.y.round();
         this.direction = 'right';
-        socket.emit( 'update player', this.index, this.name, this.direction, {x: this.targetX, y: this.targetY} );
+        socket.emit( 'updatePlayer', this.index, this.name, this.direction, {x: this.targetX, y: this.targetY} );
       }
     }
     else {
@@ -175,21 +175,25 @@ EntityOtherPlayer = ig.Entity.extend({
 
   update: function() {
     if( this.direction == 'up' && this.pos.y.round() > this.targetY ) {
+    	this.pos.x = this.targetX;
       this.vel.y = -this.speed;
       this.vel.x = 0;
       this.currentAnim = this.anims.up;
     } 
     else if( this.direction == 'down' && this.pos.y.round() < this.targetY ) {
+    	this.pos.x = this.targetX;
       this.vel.y = +this.speed;
       this.vel.x = 0;
       this.currentAnim = this.anims.down;
     }
     else if( this.direction == 'left' && this.pos.x.round() > this.targetX ) {
+    	this.pos.y = this.targetY;
       this.vel.x = -this.speed;
       this.vel.y = 0;
       this.currentAnim = this.anims.left;
     }
     else if( this.direction == 'right' && this.pos.x.round() < this.targetX ) {
+    	this.pos.y = this.targetY;
       this.vel.x = +this.speed;
       this.vel.y = 0;
       this.currentAnim = this.anims.right;
