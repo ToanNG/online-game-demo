@@ -33,15 +33,16 @@
 		}
 
 		#container {
-      width: 100%;
-      height: 100%;
-      background-color: gray;
-    }
+			width: 100%;
+			height: 100%;
+			background-color: gray;
+		}
 	</style>
 
 	<!-- <script src="/socket.io/socket.io.js"></script> -->
 	<script type="text/javascript" src="lib/three.js"></script>
 	<script type="text/javascript" src="lib/impact/impact.js"></script>
+	<script type="text/javascript" src="lib/impact3D.js"></script>
 	<script type="text/javascript" src="lib/game/main.js"></script>
 </head>
 <body>
@@ -50,103 +51,172 @@
 	<script type="text/javascript">
 		var inputName = "Toan",
 				gameScreen = {};
+
+		loadGeometry();
+		setTimeout(preInit, 1000);
+			
+		function loadGeometry() {
+			var loader = new THREE.JSONLoader();
+			loader.load("models/char.js", function(geometry) { impact3D.addModel(geometry, "1") });
+		}
+
+		function preInit() {
+			if (ig.game) {
+				init();
+			} else {
+				setTimeout(preInit, 500);
+			}
+		}
+
+		function init() {
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setClearColor( 0xf0f0f0 );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			container = document.getElementById( 'container' );
+			container.appendChild( renderer.domElement );
+
+			camera.position.z = 100;
+			camera.position.y = 100;
+			camera.position.x = 100;
+
+			// grid
+			var size = 320, step = 32;
+
+			var geometry = new THREE.Geometry();
+
+			for ( var i = - size; i <= size; i += step ) {
+
+				geometry.vertices.push( new THREE.Vector3( - size, 0, i ) );
+				geometry.vertices.push( new THREE.Vector3(   size, 0, i ) );
+
+				geometry.vertices.push( new THREE.Vector3( i, 0, - size ) );
+				geometry.vertices.push( new THREE.Vector3( i, 0,   size ) );
+
+			}
+
+			var material = new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.2, transparent: true } );
+
+			var line = new THREE.Line( geometry, material );
+			line.type = THREE.LinePieces;
+			scene.add( line );
+
+			plane = new THREE.Mesh( new THREE.PlaneGeometry( 1000, 1000 ), new THREE.MeshBasicMaterial() );
+			plane.rotation.x = - Math.PI / 2;
+			plane.visible = false;
+			scene.add( plane );
+
+			impact3D.init(scene);
+
+			function render() {
+				requestAnimationFrame(render);
+				// cube.rotation.x += 0.01;
+				// cube.rotation.y += 0.01;
+				camera.lookAt( scene.position );
+				renderer.render(scene, camera);
+			}
+			render();
+		}
 	</script>
 
+	<!--
 	<script>
-    var isUpDown,
-        isDownDown,
-        isLeftDown,
-        isRightDown;
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
-    var renderer = new THREE.WebGLRenderer();
-    renderer.setClearColor( 0xf0f0f0 );
-    renderer.setSize( window.innerWidth/2, window.innerHeight/2 );
-    container = document.getElementById( 'container' );
-    container.appendChild( renderer.domElement );
+		var isUpDown,
+				isDownDown,
+				isLeftDown,
+				isRightDown;
+		var scene = new THREE.Scene();
+		var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setClearColor( 0xf0f0f0 );
+		renderer.setSize( window.innerWidth/2, window.innerHeight/2 );
+		container = document.getElementById( 'container' );
+		container.appendChild( renderer.domElement );
 
-    var geometry = new THREE.CubeGeometry(32,32,32,1,1,1);
-    var material = new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: true } );
-    var cube = new THREE.Mesh( geometry, material );
-    scene.add( cube );
-    camera.position.z = 600;
-    camera.position.y = 600;
+		var geometry = new THREE.CubeGeometry(32,32,32,1,1,1);
+		var material = new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: true } );
+		var cube = new THREE.Mesh( geometry, material );
+		scene.add( cube );
+		camera.position.z = 600;
+		camera.position.y = 600;
 
-    axes = new THREE.AxisHelper( 1000 );
-    scene.add( axes );
+		axes = new THREE.AxisHelper( 1000 );
+		scene.add( axes );
 
 
 
-    // grid
+		// grid
 
-    var size = 320, step = 32;
+		var size = 320, step = 32;
 
-    var geometry = new THREE.Geometry();
+		var geometry = new THREE.Geometry();
 
-    for ( var i = - size; i <= size; i += step ) {
+		for ( var i = - size; i <= size; i += step ) {
 
-      geometry.vertices.push( new THREE.Vector3( - size, 0, i ) );
-      geometry.vertices.push( new THREE.Vector3(   size, 0, i ) );
+			geometry.vertices.push( new THREE.Vector3( - size, 0, i ) );
+			geometry.vertices.push( new THREE.Vector3(   size, 0, i ) );
 
-      geometry.vertices.push( new THREE.Vector3( i, 0, - size ) );
-      geometry.vertices.push( new THREE.Vector3( i, 0,   size ) );
+			geometry.vertices.push( new THREE.Vector3( i, 0, - size ) );
+			geometry.vertices.push( new THREE.Vector3( i, 0,   size ) );
 
-    }
+		}
 
-    var material = new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.2, transparent: true } );
+		var material = new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.2, transparent: true } );
 
-    var line = new THREE.Line( geometry, material );
-    line.type = THREE.LinePieces;
-    scene.add( line );
+		var line = new THREE.Line( geometry, material );
+		line.type = THREE.LinePieces;
+		scene.add( line );
 
-    plane = new THREE.Mesh( new THREE.PlaneGeometry( 1000, 1000 ), new THREE.MeshBasicMaterial() );
-    plane.rotation.x = - Math.PI / 2;
-    plane.visible = false;
-    scene.add( plane );
+		plane = new THREE.Mesh( new THREE.PlaneGeometry( 1000, 1000 ), new THREE.MeshBasicMaterial() );
+		plane.rotation.x = - Math.PI / 2;
+		plane.visible = false;
+		scene.add( plane );
 
-    document.addEventListener( 'keydown', onDocumentKeyDown, false );
-    document.addEventListener( 'keyup', onDocumentKeyUp, false );
-    function onDocumentKeyDown( event ) {
-      switch( event.keyCode ) {
-        case 37: isLeftDown = true; break;
-        case 38: isUpDown = true; break;
-        case 39: isRightDown = true; break;
-        case 40: isDownDown = true; break;
-      }
-    }
-    function onDocumentKeyUp( event ) {
-      switch ( event.keyCode ) {
-        case 37: isLeftDown = false; break;
-        case 38: isUpDown = false; break;
-        case 39: isRightDown = false; break;
-        case 40: isDownDown = false; break;
-      }
-    }
+		document.addEventListener( 'keydown', onDocumentKeyDown, false );
+		document.addEventListener( 'keyup', onDocumentKeyUp, false );
+		function onDocumentKeyDown( event ) {
+			switch( event.keyCode ) {
+				case 37: isLeftDown = true; break;
+				case 38: isUpDown = true; break;
+				case 39: isRightDown = true; break;
+				case 40: isDownDown = true; break;
+			}
+		}
+		function onDocumentKeyUp( event ) {
+			switch ( event.keyCode ) {
+				case 37: isLeftDown = false; break;
+				case 38: isUpDown = false; break;
+				case 39: isRightDown = false; break;
+				case 40: isDownDown = false; break;
+			}
+		}
 
-    function render() {
-      requestAnimationFrame(render);
-      // cube.rotation.x += 0.01;
-      // cube.rotation.y += 0.01;
-      var speed = 10;
+		function render() {
+			requestAnimationFrame(render);
+			// cube.rotation.x += 0.01;
+			// cube.rotation.y += 0.01;
+			var speed = 10;
 
-      if (isUpDown) {
-        cube.position.z -= speed;
-      }
-      if(isDownDown) {
-        cube.position.z += speed;
-      }
-      if (isLeftDown) {
-        cube.position.x -= speed;
-      }
-      if (isRightDown) {
-        cube.position.x += speed;
-      }
+			if (isUpDown) {
+				cube.position.z -= speed;
+			}
+			if(isDownDown) {
+				cube.position.z += speed;
+			}
+			if (isLeftDown) {
+				cube.position.x -= speed;
+			}
+			if (isRightDown) {
+				cube.position.x += speed;
+			}
 
-      camera.lookAt( scene.position );
-      renderer.render(scene, camera);
-    }
-    render();
-  </script>
+			camera.lookAt( scene.position );
+			renderer.render(scene, camera);
+		}
+		render();
+	</script>
+	-->
 
 	<canvas id="canvas"></canvas>
 	<!-- 
